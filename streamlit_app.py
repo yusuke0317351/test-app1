@@ -5,7 +5,7 @@ import streamlit as st
 st.set_page_config(page_title="タイトル", layout="wide")
 
 # タイトルを設定
-st.title('Streamlitのサンプルアプリ')
+st.title('yusuke')
 
 # テキスト入力ボックスを作成し、ユーザーからの入力を受け取る
 user_input = st.text_input('あなたの名前を入力してください')
