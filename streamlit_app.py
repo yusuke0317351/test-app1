@@ -53,8 +53,12 @@ st.markdown("""
 # データの読み込み
 def load_data():
     if DATA_FILE.exists():
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        try:
+            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data if isinstance(data, list) else []
+        except:
+            return []
     return []
 
 # データの保存
@@ -69,9 +73,8 @@ def days_until_expiry(expiry_date):
     return (expiry - today).days
 
 # セッション状態の初期化
-if 'items' not in st.session_state:
-    loaded_data = load_data()
-    st.session_state.items = loaded_data if isinstance(loaded_data, list) else []
+if 'food_items' not in st.session_state:
+    st.session_state.food_items = load_data()
 
 # タイトル
 st.title("🍱 冷蔵庫管理アプリ")
@@ -85,11 +88,11 @@ tab1, tab2, tab3 = st.tabs(["📋 食材リスト", "➕ 食材を追加", "ℹ�
 with tab1:
     st.header("登録されている食材")
     
-    if len(st.session_state.items) == 0:
+    if len(st.session_state.food_items) == 0:
         st.info("📭 まだ食材が登録されていません。「食材を追加」タブから登録してください。")
     else:
         # 賞味期限でソート
-        sorted_items = sorted(st.session_state.items, 
+        sorted_items = sorted(st.session_state.food_items, 
                             key=lambda x: x['expiry_date'])
         
         # 警告カウント
@@ -142,8 +145,8 @@ with tab1:
             
             with col2:
                 if st.button(f"🗑️ 削除", key=f"delete_{item['barcode']}_{item['purchase_date']}"):
-                    st.session_state.items.remove(item)
-                    save_data(st.session_state.items)
+                    st.session_state.food_items.remove(item)
+                    save_data(st.session_state.food_items)
                     st.rerun()
         
         # サマリー表示
@@ -154,7 +157,7 @@ with tab1:
         with col2:
             st.metric("⚠️ 注意（7日以内）", f"{warning_count}個")
         with col3:
-            st.metric("📊 合計", f"{len(st.session_state.items)}個")
+            st.metric("📊 合計", f"{len(st.session_state.food_items)}個")
 
 # タブ2: 食材を追加
 with tab2:
@@ -187,8 +190,8 @@ with tab2:
                     'expiry_date': (datetime.now() + timedelta(days=food_data['days'])).strftime("%Y-%m-%d"),
                     'photo': None
                 }
-                st.session_state.items.append(new_item)
-                save_data(st.session_state.items)
+                st.session_state.food_items.append(new_item)
+                save_data(st.session_state.food_items)
                 st.success(f"✅ {food_name} を登録しました！")
                 st.balloons()
                 st.rerun()
@@ -219,8 +222,6 @@ with tab2:
                 barcode = st.text_input("バーコード番号（任意）", 
                                        placeholder="なければ空欄でOK",
                                        help="バーコードがあれば入力してください")
-                if not barcode:
-                    barcode = f"MANUAL_{datetime.now().strftime('%Y%m%d%H%M%S')}"
             
             purchase_date = st.date_input("購入日 *", 
                                          value=datetime.now(),
@@ -259,6 +260,10 @@ with tab2:
         
         if submitted:
             if name:
+                # バーコードが空の場合は自動生成
+                if not barcode:
+                    barcode = f"MANUAL_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                
                 new_item = {
                     'name': name,
                     'barcode': barcode,
@@ -266,8 +271,8 @@ with tab2:
                     'expiry_date': expiry_date.strftime("%Y-%m-%d") if isinstance(expiry_date, datetime) else expiry_date.strftime("%Y-%m-%d"),
                     'photo': photo.name if photo else None
                 }
-                st.session_state.items.append(new_item)
-                save_data(st.session_state.items)
+                st.session_state.food_items.append(new_item)
+                save_data(st.session_state.food_items)
                 st.success(f"✅ {name} を登録しました！")
                 st.balloons()
                 st.rerun()
@@ -283,8 +288,9 @@ with tab3:
     
     ### 1️⃣ 食材を登録する
     - 「食材を追加」タブで新しい食材を登録できます
-    - バーコード番号、購入日、賞味期限を入力してください
-    - 賞味期限の写真もアップロードできます（任意）
+    - **簡単登録**: よく使う食材ボタンをクリックするだけ
+    - **手動登録**: バーコード番号、購入日、賞味期限を入力
+    - 賞味期限は「日付」または「何日後」で指定できます
     
     ### 2️⃣ 食材の状態を確認する
     - 「食材リスト」タブで登録した食材を確認できます
@@ -302,6 +308,7 @@ with tab3:
     - 買い物から帰ったら、すぐに登録しましょう
     - 毎日「食材リスト」を確認する習慣をつけましょう
     - 赤色の食材は優先的に使いましょう
+    - よく使う食材はボタンで簡単登録！
     """)
     
     st.info("💡 このアプリを使って、食品ロスを減らし、安全においしく食事を楽しみましょう！")
