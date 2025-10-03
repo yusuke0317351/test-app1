@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import json
 from PIL import Image
 import io
+import requests
+from urllib.parse import urlencode
 
 # ページ設定
 st.set_page_config(
@@ -17,6 +19,48 @@ if 'users' not in st.session_state:
     st.session_state.users = {}
 if 'current_user' not in st.session_state:
     st.session_state.current_user = None
+if 'yahoo_api_key' not in st.session_state:
+    st.session_state.yahoo_api_key = ""
+
+# Yahoo!ショッピングAPIから商品名を取得
+def get_product_name_from_barcode(barcode, api_key):
+    """
+    バーコード（JAN）から商品名を取得
+    """
+    if not api_key or not barcode:
+        return None
+    
+    try:
+        # Yahoo!ショッピングAPIのエンドポイント
+        url = "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch"
+        
+        # パラメータ設定
+        params = {
+            'appid': api_key,
+            'jan_code': barcode,
+            'results': 1  # 1件のみ取得
+        }
+        
+        # APIリクエスト
+        response = requests.get(url, params=params, timeout=5)
+        response.raise_for_status()
+        
+        # レスポンス解析
+        data = response.json()
+        
+        # 商品が見つかった場合
+        if 'hits' in data and len(data['hits']) > 0:
+            item = data['hits'][0]
+            product_name = item.get('name', '')
+            # 商品名から不要な文字を削除（より簡潔に）
+            product_name = product_name.split('【')[0].split('(')[0].strip()
+            return product_name
+        else:
+            return None
+            
+    except Exception as e:
+        st.error(f"API エラー: {str(e)}")
+        return None
 
 # カスタムCSS（大きな文字とボタン）
 st.markdown("""
@@ -45,8 +89,12 @@ st.markdown("""
 # タイトル
 st.title("🍱 冷蔵庫管理アプリ")
 
-# ユーザー選択・登録セクション
+# APIキー設定（サイドバーに移動するため、ここでは表示しない）
+# 設定はサイドバーで行います
+
 st.markdown("---")
+
+# ユーザー選択・登録セクション
 col_user1, col_user2, col_user3 = st.columns([2, 2, 1])
 
 with col_user1:
@@ -130,18 +178,39 @@ with tab1:
     with col2:
         st.subheader("📝 食材情報を入力")
         
-        # 食材名入力
-        item_name = st.text_input(
-            "食材名", 
-            placeholder="例: 牛乳、卵、豆腐",
-            help="食材の名前を入力してください"
+        # バーコード番号入力
+        barcode = st.text_input(
+            "バーコード番号（JAN）",
+            placeholder="例: 4901234567890",
+            help="バーコードの番号を入力してください（13桁）",
+            key="barcode_input"
         )
         
-        # バーコード番号（オプション）
-        barcode = st.text_input(
-            "バーコード番号（任意）",
-            placeholder="例: 4901234567890",
-            help="バーコードの番号がわかれば入力してください"
+        # バーコードから商品名を検索するボタン
+        col_search1, col_search2 = st.columns([1, 2])
+        with col_search1:
+            search_button = st.button("🔍 商品名を検索", type="secondary")
+        
+        # 商品名の自動取得
+        auto_product_name = ""
+        if search_button and barcode:
+            if st.session_state.yahoo_api_key:
+                with st.spinner("商品を検索中..."):
+                    auto_product_name = get_product_name_from_barcode(barcode, st.session_state.yahoo_api_key)
+                    if auto_product_name:
+                        st.success(f"✅ 商品が見つかりました: {auto_product_name}")
+                    else:
+                        st.warning("⚠️ 商品が見つかりませんでした。手動で入力してください。")
+            else:
+                st.error("⚠️ Yahoo! APIキーが設定されていません。サイドバーで設定してください。")
+        
+        # 食材名入力（自動取得された名前をデフォルト値に）
+        item_name = st.text_input(
+            "食材名", 
+            value=auto_product_name if auto_product_name else "",
+            placeholder="例: 牛乳、卵、豆腐",
+            help="食材の名前を入力してください（バーコード検索で自動入力できます）",
+            key="item_name_input"
         )
         
         # 購入日
@@ -329,6 +398,40 @@ with tab3:
 
 # サイドバー
 with st.sidebar:
+    st.header("⚙️ 設定")
+    
+    # Yahoo! APIキーの設定
+    with st.expander("🔑 Yahoo! APIキー設定", expanded=not st.session_state.yahoo_api_key):
+        st.markdown("""
+        バーコードから商品名を自動取得するには、Yahoo!デベロッパーネットワークのAPIキーが必要です。
+        
+        **取得方法:**
+        1. [Yahoo!デベロッパーネットワーク](https://developer.yahoo.co.jp/)にアクセス
+        2. 「アプリケーションの管理」から新規アプリケーションを作成
+        3. Client IDをコピーしてください
+        """)
+        
+        api_key_input = st.text_input(
+            "Yahoo! Client ID",
+            value=st.session_state.yahoo_api_key,
+            type="password",
+            help="Yahoo!デベロッパーネットワークで取得したClient IDを入力"
+        )
+        
+        if st.button("💾 APIキーを保存"):
+            st.session_state.yahoo_api_key = api_key_input
+            if api_key_input:
+                st.success("✅ APIキーを保存しました")
+            else:
+                st.info("APIキーがクリアされました")
+        
+        if st.session_state.yahoo_api_key:
+            st.success("✅ APIキー設定済み")
+        else:
+            st.warning("⚠️ APIキー未設定（手動入力のみ）")
+    
+    st.divider()
+    
     st.header("📊 統計情報")
     
     # 現在のユーザー情報
