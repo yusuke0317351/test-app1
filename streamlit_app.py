@@ -159,39 +159,110 @@ with tab1:
 with tab2:
     st.header("新しい食材を登録")
     
+    # よく使う食材のプリセット
+    st.subheader("🍽️ よく使う食材から選ぶ")
+    
+    preset_foods = {
+        "牛乳": {"days": 7, "barcode": "4901234567890"},
+        "卵": {"days": 14, "barcode": "4901234567891"},
+        "豆腐": {"days": 5, "barcode": "4901234567892"},
+        "ヨーグルト": {"days": 14, "barcode": "4901234567893"},
+        "納豆": {"days": 7, "barcode": "4901234567894"},
+        "食パン": {"days": 5, "barcode": "4901234567895"},
+        "ハム": {"days": 7, "barcode": "4901234567896"},
+        "チーズ": {"days": 30, "barcode": "4901234567897"},
+        "もやし": {"days": 2, "barcode": "4901234567898"},
+        "キャベツ": {"days": 7, "barcode": "4901234567899"},
+    }
+    
+    cols = st.columns(5)
+    for idx, (food_name, food_data) in enumerate(preset_foods.items()):
+        with cols[idx % 5]:
+            if st.button(f"🛒 {food_name}", key=f"preset_{food_name}", use_container_width=True):
+                new_item = {
+                    'name': food_name,
+                    'barcode': food_data['barcode'],
+                    'purchase_date': datetime.now().strftime("%Y-%m-%d"),
+                    'expiry_date': (datetime.now() + timedelta(days=food_data['days'])).strftime("%Y-%m-%d"),
+                    'photo': None
+                }
+                st.session_state.items.append(new_item)
+                save_data(st.session_state.items)
+                st.success(f"✅ {food_name} を登録しました！")
+                st.balloons()
+                st.rerun()
+    
+    st.markdown("---")
+    st.subheader("✏️ 手動で登録する")
+    
+    # 入力方法の選択
+    input_method = st.radio(
+        "入力方法を選んでください",
+        ["📝 すべて手入力", "📷 バーコードを入力"],
+        horizontal=True
+    )
+    
     with st.form("add_item_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         
         with col1:
             name = st.text_input("食材名 *", placeholder="例: 牛乳", 
                                help="食材の名前を入力してください")
-            barcode = st.text_input("バーコード番号 *", placeholder="例: 4901234567890",
-                                   help="バーコードの番号を入力してください")
+            
+            if input_method == "📷 バーコードを入力":
+                st.info("💡 商品のバーコード番号を入力してください")
+                barcode = st.text_input("バーコード番号 *", 
+                                       placeholder="例: 4901234567890",
+                                       help="13桁のバーコード番号を入力してください")
+            else:
+                barcode = st.text_input("バーコード番号（任意）", 
+                                       placeholder="なければ空欄でOK",
+                                       help="バーコードがあれば入力してください")
+                if not barcode:
+                    barcode = f"MANUAL_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            
             purchase_date = st.date_input("購入日 *", 
                                          value=datetime.now(),
                                          help="食材を購入した日を選択してください")
         
         with col2:
-            expiry_date = st.date_input("賞味期限 *", 
-                                       value=datetime.now() + timedelta(days=7),
-                                       help="賞味期限の日付を選択してください")
+            # 賞味期限の入力方法
+            expiry_input = st.radio(
+                "賞味期限の入力方法",
+                ["📅 日付を選ぶ", "🔢 日数で指定"],
+                horizontal=True
+            )
+            
+            if expiry_input == "📅 日付を選ぶ":
+                expiry_date = st.date_input("賞味期限 *", 
+                                           value=datetime.now() + timedelta(days=7),
+                                           help="賞味期限の日付を選択してください")
+            else:
+                days = st.number_input("何日後まで？ *", 
+                                      min_value=1, 
+                                      max_value=365, 
+                                      value=7,
+                                      help="今日から何日後が賞味期限ですか？")
+                expiry_date = datetime.now() + timedelta(days=days)
+                st.info(f"📅 賞味期限: {expiry_date.strftime('%Y年%m月%d日')}")
             
             # 写真アップロード（オプション）
             photo = st.file_uploader("賞味期限の写真（任意）", 
                                     type=['jpg', 'jpeg', 'png'],
                                     help="賞味期限が写った写真をアップロードできます")
         
-        st.markdown("**\* は必須項目です**")
-        
-        submitted = st.form_submit_button("📝 登録する", use_container_width=True)
+        st.markdown("---")
+        col_submit1, col_submit2, col_submit3 = st.columns([1, 2, 1])
+        with col_submit2:
+            submitted = st.form_submit_button("📝 この食材を登録する", use_container_width=True)
         
         if submitted:
-            if name and barcode:
+            if name:
                 new_item = {
                     'name': name,
                     'barcode': barcode,
-                    'purchase_date': purchase_date.strftime("%Y-%m-%d"),
-                    'expiry_date': expiry_date.strftime("%Y-%m-%d"),
+                    'purchase_date': purchase_date.strftime("%Y-%m-%d") if isinstance(purchase_date, datetime) else purchase_date.strftime("%Y-%m-%d"),
+                    'expiry_date': expiry_date.strftime("%Y-%m-%d") if isinstance(expiry_date, datetime) else expiry_date.strftime("%Y-%m-%d"),
                     'photo': photo.name if photo else None
                 }
                 st.session_state.items.append(new_item)
@@ -200,7 +271,7 @@ with tab2:
                 st.balloons()
                 st.rerun()
             else:
-                st.error("⚠️ 食材名とバーコード番号は必須です。")
+                st.error("⚠️ 食材名は必須です。")
 
 # タブ3: 使い方
 with tab3:
