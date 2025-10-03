@@ -70,7 +70,8 @@ def days_until_expiry(expiry_date):
 
 # セッション状態の初期化
 if 'items' not in st.session_state:
-    st.session_state.items = load_data()
+    loaded_data = load_data()
+    st.session_state.items = loaded_data if isinstance(loaded_data, list) else []
 
 # タイトル
 st.title("🍱 冷蔵庫管理アプリ")
