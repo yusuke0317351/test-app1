@@ -99,7 +99,7 @@ with tab1:
         urgent_count = 0
         warning_count = 0
         
-        for item in sorted_items:
+        for idx, item in enumerate(sorted_items):
             days_left = days_until_expiry(item['expiry_date'])
             
             col1, col2 = st.columns([4, 1])
@@ -144,7 +144,7 @@ with tab1:
                     """, unsafe_allow_html=True)
             
             with col2:
-                if st.button(f"🗑️ 削除", key=f"delete_{item['barcode']}_{item['purchase_date']}"):
+                if st.button(f"🗑️ 削除", key=f"delete_{idx}_{item['barcode']}"):
                     st.session_state.food_items.remove(item)
                     save_data(st.session_state.food_items)
                     st.rerun()
