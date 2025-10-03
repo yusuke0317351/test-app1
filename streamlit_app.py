@@ -266,7 +266,7 @@ with tab1:
 with tab2:
     st.header("登録されている食材")
     
-    if st.session_state.items:
+    if st.session_state.items and len(st.session_state.items) > 0:
         # データフレームに変換
         df = pd.DataFrame(st.session_state.items)
         
@@ -342,7 +342,7 @@ with tab2:
 with tab3:
     st.header("⚠️ 賞味期限の警告")
     
-    if st.session_state.items:
+    if st.session_state.items and len(st.session_state.items) > 0:
         df = pd.DataFrame(st.session_state.items)
         df['expiry_date_dt'] = pd.to_datetime(df['expiry_date'])
         today = pd.Timestamp(datetime.now().date())
@@ -438,7 +438,7 @@ with st.sidebar:
     if st.session_state.current_user:
         st.info(f"👤 {st.session_state.current_user}さん")
     
-    if st.session_state.items:
+    if st.session_state.items and len(st.session_state.items) > 0:
         total = len(st.session_state.items)
         df = pd.DataFrame(st.session_state.items)
         df['expiry_date_dt'] = pd.to_datetime(df['expiry_date'])
@@ -468,7 +468,7 @@ with st.sidebar:
     if st.session_state.users:
         st.subheader("👥 全利用者")
         for user_name, user_items in st.session_state.users.items():
-            item_count = len(user_items)
+            item_count = len(user_items) if user_items else 0
             if item_count > 0:
                 # 警告のある食材をカウント
                 df_temp = pd.DataFrame(user_items)
