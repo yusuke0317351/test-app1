@@ -416,7 +416,8 @@ with tab1:
                 'expiry_date': expiry_date.strftime('%Y-%m-%d'),
                 'category': category,
                 'quantity': quantity,
-                'registered_at': datetime.now().strftime('%Y-%m-%d %H:%M')
+                'registered_at': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                'registered_by': st.session_state['current_user']  # 登録者を記録
             }
             # リストに追加
             current_items = list(st.session_state['items'])
@@ -439,6 +440,10 @@ with tab2:
     if isinstance(current_items, list) and len(current_items) > 0:
         # データフレームに変換
         df = pd.DataFrame(current_items)
+        
+        # 登録者情報がない古いデータに対応
+        if 'registered_by' not in df.columns:
+            df['registered_by'] = '不明'
        
         # 賞味期限までの日数を計算
         df['expiry_date_dt'] = pd.to_datetime(df['expiry_date'])
@@ -449,21 +454,42 @@ with tab2:
         df = df.sort_values('days_left')
         df = df.reset_index(drop=True)
        
-        # カテゴリでフィルター
-        selected_category = st.selectbox(
-            "カテゴリで絞り込み",
-            ["すべて"] + list(df['category'].unique())
-        )
+        # フィルターセクション
+        col_filter1, col_filter2 = st.columns(2)
+        
+        with col_filter1:
+            # カテゴリでフィルター
+            selected_category = st.selectbox(
+                "カテゴリで絞り込み",
+                ["すべて"] + list(df['category'].unique())
+            )
+        
+        with col_filter2:
+            # 登録者でフィルター
+            unique_users = list(df['registered_by'].unique())
+            selected_user_filter = st.selectbox(
+                "登録者で絞り込み",
+                ["すべて"] + unique_users
+            )
        
+        # フィルタリング
+        df_display = df.copy()
         if selected_category != "すべて":
-            df_display = df[df['category'] == selected_category].reset_index(drop=True)
-        else:
-            df_display = df
+            df_display = df_display[df_display['category'] == selected_category]
+        if selected_user_filter != "すべて":
+            df_display = df_display[df_display['registered_by'] == selected_user_filter]
+        
+        df_display = df_display.reset_index(drop=True)
+        
+        # 統計情報を表示
+        if len(df_display) > 0:
+            st.info(f"📊 表示中: {len(df_display)}個 / 全{len(df)}個")
        
         # 食材カードを表示
         for idx in range(len(df_display)):
             row = df_display.iloc[idx]
             days_left = row['days_left']
+            registered_by = row.get('registered_by', '不明')
            
             # 警告レベルの判定
             if days_left < 0:
@@ -487,11 +513,14 @@ with tab2:
                 alert_text = f"あと{days_left}日"
                 alert_class = "safe-font"
            
-            # カード表示（モバイル最適化）
+            # カード表示（モバイル最適化 + 登録者情報）
             with st.container():
                 st.markdown(f"""
                     <div style="background-color: {alert_color}; padding: 15px; border-radius: 10px; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <h2 style="margin: 0; font-size: 20px;">{row['name']} ({row['category']})</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                            <h2 style="margin: 0; font-size: 20px;">{row['name']} ({row['category']})</h2>
+                            <span style="background-color: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 15px; font-size: 14px; white-space: nowrap;">👤 {registered_by}</span>
+                        </div>
                         <p class="{alert_class}" style="margin: 10px 0;">{alert_text}</p>
                         <p style="margin: 5px 0;"><strong>数量:</strong> {row['quantity']}</p>
                         <p style="margin: 5px 0;"><strong>購入日:</strong> {row['purchase_date']}</p>
@@ -520,6 +549,11 @@ with tab3:
    
     if isinstance(current_items, list) and len(current_items) > 0:
         df = pd.DataFrame(current_items)
+        
+        # 登録者情報がない古いデータに対応
+        if 'registered_by' not in df.columns:
+            df['registered_by'] = '不明'
+            
         df['expiry_date_dt'] = pd.to_datetime(df['expiry_date'])
         today = pd.Timestamp(datetime.now().date())
         df['days_left'] = (df['expiry_date_dt'] - today).dt.days
@@ -533,9 +567,13 @@ with tab3:
         if not expired.empty:
             st.error("🚨 期限切れの食材があります！")
             for _, row in expired.iterrows():
+                registered_by = row.get('registered_by', '不明')
                 st.markdown(f"""
                     <div style="background-color: #ffcccc; padding: 15px; border-radius: 10px; margin: 10px 0; border: 3px solid red;">
-                        <h2 style="color: red;">🚨 {row['name']}</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <h2 style="color: red; margin: 0;">🚨 {row['name']}</h2>
+                            <span style="background-color: rgba(255,255,255,0.7); padding: 5px 10px; border-radius: 15px; font-size: 14px;">👤 {registered_by}</span>
+                        </div>
                         <p class="warning-font">期限切れ: {abs(row['days_left'])}日前に切れました</p>
                         <p><strong>賞味期限:</strong> {row['expiry_date']}</p>
                     </div>
@@ -545,9 +583,13 @@ with tab3:
         if not today_expiry.empty:
             st.warning("⚠️ 今日が期限の食材があります！")
             for _, row in today_expiry.iterrows():
+                registered_by = row.get('registered_by', '不明')
                 st.markdown(f"""
                     <div style="background-color: #ffeecc; padding: 15px; border-radius: 10px; margin: 10px 0; border: 3px solid orange;">
-                        <h2 style="color: orange;">⚠️ {row['name']}</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <h2 style="color: orange; margin: 0;">⚠️ {row['name']}</h2>
+                            <span style="background-color: rgba(255,255,255,0.7); padding: 5px 10px; border-radius: 15px; font-size: 14px;">👤 {registered_by}</span>
+                        </div>
                         <p class="warning-font">今日が賞味期限です！</p>
                         <p><strong>早めに食べてください</strong></p>
                     </div>
@@ -557,9 +599,13 @@ with tab3:
         if not warning.empty:
             st.warning("📢 もうすぐ期限が切れる食材があります")
             for _, row in warning.iterrows():
+                registered_by = row.get('registered_by', '不明')
                 st.markdown(f"""
                     <div style="background-color: #fff4cc; padding: 15px; border-radius: 10px; margin: 10px 0; border: 2px solid orange;">
-                        <h2>{row['name']}</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <h2 style="margin: 0;">{row['name']}</h2>
+                            <span style="background-color: rgba(255,255,255,0.7); padding: 5px 10px; border-radius: 15px; font-size: 14px;">👤 {registered_by}</span>
+                        </div>
                         <p class="big-font">あと{row['days_left']}日で期限です</p>
                         <p><strong>賞味期限:</strong> {row['expiry_date']}</p>
                     </div>
@@ -631,6 +677,11 @@ with st.sidebar:
     if isinstance(current_items, list) and len(current_items) > 0:
         total = len(current_items)
         df = pd.DataFrame(current_items)
+        
+        # 登録者情報がない古いデータに対応
+        if 'registered_by' not in df.columns:
+            df['registered_by'] = '不明'
+            
         df['expiry_date_dt'] = pd.to_datetime(df['expiry_date'])
         today = pd.Timestamp(datetime.now().date())
         df['days_left'] = (df['expiry_date_dt'] - today).dt.days
@@ -649,6 +700,12 @@ with st.sidebar:
         category_counts = df['category'].value_counts()
         for cat, count in category_counts.items():
             st.write(f"• {cat}: {count}個")
+        
+        # 登録者別の統計
+        st.subheader("登録者別")
+        user_counts = df['registered_by'].value_counts()
+        for user, count in user_counts.items():
+            st.write(f"• {user}: {count}個")
     else:
         st.info("データがありません")
    
