@@ -19,6 +19,10 @@ if 'users' not in st.session_state:
     st.session_state.users = {}
 if 'current_user' not in st.session_state:
     st.session_state.current_user = None
+if 'items' not in st.session_state:
+    st.session_state.items = []
+if 'items_user' not in st.session_state:
+    st.session_state.items_user = None
  
 # Open Food Facts APIから商品名を取得
 def get_product_name_from_barcode(barcode):
@@ -122,6 +126,8 @@ with col_user3:
                 if new_user_name not in st.session_state.users:
                     st.session_state.users[new_user_name] = []
                     st.session_state.current_user = new_user_name
+                    st.session_state.items = []
+                    st.session_state.items_user = new_user_name
                     st.success(f"✅ {new_user_name}さんを登録しました！")
                     st.rerun()
                 else:
@@ -131,14 +137,16 @@ with col_user3:
     else:
         if st.button("✅ 選択"):
             st.session_state.current_user = selected_user
+            st.session_state.items = st.session_state.users.get(selected_user, []).copy()
+            st.session_state.items_user = selected_user
             st.rerun()
  
 # 現在のユーザー表示
 if st.session_state.current_user:
     st.success(f"📱 現在の利用者: **{st.session_state.current_user}**さん")
-    # 現在のユーザーのアイテムリストを取得
-    if 'items' not in st.session_state or st.session_state.get('items_user') != st.session_state.current_user:
-        st.session_state.items = st.session_state.users.get(st.session_state.current_user, [])
+    # 現在のユーザーのアイテムリストを同期
+    if st.session_state.items_user != st.session_state.current_user:
+        st.session_state.items = st.session_state.users.get(st.session_state.current_user, []).copy()
         st.session_state.items_user = st.session_state.current_user
 else:
     st.warning("⚠️ 利用者を選択してください")
@@ -247,7 +255,7 @@ with tab1:
                 }
                 st.session_state.items.append(new_item)
                 # ユーザーデータを更新
-                st.session_state.users[st.session_state.current_user] = st.session_state.items
+                st.session_state.users[st.session_state.current_user] = st.session_state.items.copy()
                 st.success(f"✅ {item_name} を登録しました！")
                 st.balloons()
             else:
@@ -322,9 +330,11 @@ with tab2:
                 col1, col2 = st.columns([1, 5])
                 with col1:
                     if st.button(f"🗑️ 削除", key=f"del_{idx}"):
-                        st.session_state.items.pop(idx)
+                        # インデックスで直接削除
+                        item_index = df_display.index.get_loc(idx)
+                        st.session_state.items.pop(item_index)
                         # ユーザーデータを更新
-                        st.session_state.users[st.session_state.current_user] = st.session_state.items
+                        st.session_state.users[st.session_state.current_user] = st.session_state.items.copy()
                         st.rerun()
     else:
         st.info("📝 まだ食材が登録されていません。「食材を登録」タブから登録してください。")
@@ -463,6 +473,7 @@ with st.sidebar:
             del st.session_state.users[st.session_state.current_user]
             st.session_state.current_user = None
             st.session_state.items = []
+            st.session_state.items_user = None
             st.rerun()
    
     # すべてのデータのクリア
@@ -470,4 +481,5 @@ with st.sidebar:
         st.session_state.users = {}
         st.session_state.current_user = None
         st.session_state.items = []
+        st.session_state.items_user = None
         st.rerun()
