@@ -164,6 +164,56 @@ else:
     st.stop()
  
 st.markdown("---")
+
+# 🔔 賞味期限の通知チェック
+if st.session_state.get('notification_enabled', True):
+    current_items = st.session_state['items']
+    if isinstance(current_items, list) and len(current_items) > 0:
+        df_check = pd.DataFrame(current_items)
+        df_check['expiry_date_dt'] = pd.to_datetime(df_check['expiry_date'])
+        today = pd.Timestamp(datetime.now().date())
+        df_check['days_left'] = (df_check['expiry_date_dt'] - today).dt.days
+        
+        notification_days = st.session_state.get('notification_days', 3)
+        sound_alert = st.session_state.get('sound_alert', False)
+        
+        # 期限切れ
+        expired = df_check[df_check['days_left'] < 0]
+        if not expired.empty:
+            with st.container():
+                st.error(f"🚨 **緊急通知**: {len(expired)}個の食材が期限切れです！")
+                for _, item in expired.head(3).iterrows():
+                    st.markdown(f"- **{item['name']}** (賞味期限: {item['expiry_date']})")
+                if len(expired) > 3:
+                    st.markdown(f"...他 {len(expired) - 3}個")
+        
+        # 今日が期限
+        today_expiry = df_check[df_check['days_left'] == 0]
+        if not today_expiry.empty:
+            with st.container():
+                st.warning(f"⚠️ **今日が期限**: {len(today_expiry)}個の食材が今日期限切れになります！")
+                for _, item in today_expiry.iterrows():
+                    st.markdown(f"- **{item['name']}**")
+        
+        # 設定した日数以内
+        warning_items = df_check[(df_check['days_left'] > 0) & (df_check['days_left'] <= notification_days)]
+        if not warning_items.empty:
+            with st.container():
+                st.info(f"📢 **注意**: {len(warning_items)}個の食材が{notification_days}日以内に期限切れになります")
+                for _, item in warning_items.head(5).iterrows():
+                    st.markdown(f"- **{item['name']}** (あと{item['days_left']}日)")
+                if len(warning_items) > 5:
+                    st.markdown(f"...他 {len(warning_items) - 5}個")
+        
+        # 音声アラートのオプション
+        if sound_alert and (not expired.empty or not today_expiry.empty):
+            st.markdown("""
+                <audio autoplay>
+                    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+                </audio>
+            """, unsafe_allow_html=True)
+
+st.markdown("---")
 st.markdown("### 食材の管理を簡単に！")
  
 # タブの作成
@@ -424,6 +474,46 @@ with st.sidebar:
     st.header("⚙️ 設定")
    
     st.info("🔍 バーコード検索機能\n\nOpen Food Facts APIを使用（無料・APIキー不要）")
+    
+    st.divider()
+    
+    # 通知設定
+    st.subheader("🔔 通知設定")
+    
+    # 通知の有効/無効
+    if 'notification_enabled' not in st.session_state:
+        st.session_state['notification_enabled'] = True
+    
+    notification_enabled = st.checkbox(
+        "通知を有効にする",
+        value=st.session_state['notification_enabled'],
+        help="アプリを開いたときに賞味期限の警告を表示します"
+    )
+    st.session_state['notification_enabled'] = notification_enabled
+    
+    # 通知の日数設定
+    if 'notification_days' not in st.session_state:
+        st.session_state['notification_days'] = 3
+    
+    notification_days = st.slider(
+        "何日前に通知するか",
+        min_value=1,
+        max_value=7,
+        value=st.session_state['notification_days'],
+        help="賞味期限の何日前から通知するかを設定"
+    )
+    st.session_state['notification_days'] = notification_days
+    
+    # 音声アラート
+    if 'sound_alert' not in st.session_state:
+        st.session_state['sound_alert'] = False
+    
+    sound_alert = st.checkbox(
+        "音声アラート",
+        value=st.session_state['sound_alert'],
+        help="期限切れの食材がある場合に音でお知らせ"
+    )
+    st.session_state['sound_alert'] = sound_alert
    
     st.divider()
    
