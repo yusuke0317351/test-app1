@@ -13,16 +13,23 @@ st.set_page_config(
     page_icon="🍱",
     layout="wide"
 )
+
+# セッション状態の完全リセット（デバッグ用 - 問題が解決したら削除してください）
+if 'app_initialized' not in st.session_state:
+    # 既存の壊れたステートをクリア
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.session_state.app_initialized = True
  
 # セッション状態の初期化
 if 'users' not in st.session_state:
-    st.session_state.users = {}
+    st.session_state['users'] = {}
 if 'current_user' not in st.session_state:
-    st.session_state.current_user = None
+    st.session_state['current_user'] = None
 if 'items' not in st.session_state:
-    st.session_state.items = []
+    st.session_state['items'] = []
 if 'items_user' not in st.session_state:
-    st.session_state.items_user = None
+    st.session_state['items_user'] = None
  
 # Open Food Facts APIから商品名を取得
 def get_product_name_from_barcode(barcode):
@@ -97,12 +104,16 @@ col_user1, col_user2, col_user3 = st.columns([2, 2, 1])
  
 with col_user1:
     st.markdown("### 👤 利用者を選択")
-    if st.session_state.users:
-        user_list = ["新しい利用者を追加"] + list(st.session_state.users.keys())
+    if len(st.session_state['users']) > 0:
+        user_list = ["新しい利用者を追加"] + list(st.session_state['users'].keys())
+        current_index = 0
+        if st.session_state['current_user'] and st.session_state['current_user'] in user_list:
+            current_index = user_list.index(st.session_state['current_user'])
+        
         selected_user = st.selectbox(
             "利用者名",
             user_list,
-            index=0 if st.session_state.current_user is None else user_list.index(st.session_state.current_user) if st.session_state.current_user in user_list else 0,
+            index=current_index,
             help="管理したい方の名前を選んでください"
         )
     else:
@@ -123,11 +134,11 @@ with col_user3:
     if selected_user == "新しい利用者を追加":
         if st.button("➕ 登録", type="primary"):
             if new_user_name and new_user_name.strip():
-                if new_user_name not in st.session_state.users:
-                    st.session_state.users[new_user_name] = []
-                    st.session_state.current_user = new_user_name
-                    st.session_state.items = []
-                    st.session_state.items_user = new_user_name
+                if new_user_name not in st.session_state['users']:
+                    st.session_state['users'][new_user_name] = []
+                    st.session_state['current_user'] = new_user_name
+                    st.session_state['items'] = []
+                    st.session_state['items_user'] = new_user_name
                     st.success(f"✅ {new_user_name}さんを登録しました！")
                     st.rerun()
                 else:
@@ -136,18 +147,18 @@ with col_user3:
                 st.error("⚠️ 名前を入力してください")
     else:
         if st.button("✅ 選択"):
-            st.session_state.current_user = selected_user
-            st.session_state.items = st.session_state.users.get(selected_user, []).copy()
-            st.session_state.items_user = selected_user
+            st.session_state['current_user'] = selected_user
+            st.session_state['items'] = list(st.session_state['users'].get(selected_user, []))
+            st.session_state['items_user'] = selected_user
             st.rerun()
  
 # 現在のユーザー表示
-if st.session_state.current_user:
-    st.success(f"📱 現在の利用者: **{st.session_state.current_user}**さん")
+if st.session_state['current_user']:
+    st.success(f"📱 現在の利用者: **{st.session_state['current_user']}**さん")
     # 現在のユーザーのアイテムリストを同期
-    if st.session_state.items_user != st.session_state.current_user:
-        st.session_state.items = st.session_state.users.get(st.session_state.current_user, []).copy()
-        st.session_state.items_user = st.session_state.current_user
+    if st.session_state['items_user'] != st.session_state['current_user']:
+        st.session_state['items'] = list(st.session_state['users'].get(st.session_state['current_user'], []))
+        st.session_state['items_user'] = st.session_state['current_user']
 else:
     st.warning("⚠️ 利用者を選択してください")
     st.stop()
@@ -242,7 +253,7 @@ with tab1:
         )
        
         # 登録ボタン
-        if st.button("✅ 登録する", type="primary"):
+        if st.button("✅ 登録する", type="primary", key="register_button"):
             if item_name:
                 new_item = {
                     'name': item_name,
@@ -253,21 +264,27 @@ with tab1:
                     'quantity': quantity,
                     'registered_at': datetime.now().strftime('%Y-%m-%d %H:%M')
                 }
-                st.session_state.items.append(new_item)
+                # リストに追加
+                current_items = list(st.session_state['items'])
+                current_items.append(new_item)
+                st.session_state['items'] = current_items
                 # ユーザーデータを更新
-                st.session_state.users[st.session_state.current_user] = st.session_state.items.copy()
+                st.session_state['users'][st.session_state['current_user']] = list(current_items)
                 st.success(f"✅ {item_name} を登録しました！")
                 st.balloons()
+                st.rerun()
             else:
                 st.error("⚠️ 食材名を入力してください")
  
 # タブ2: 食材リスト
 with tab2:
     st.header("登録されている食材")
-   
-    if st.session_state.items and len(st.session_state.items) > 0:
+    
+    current_items = st.session_state['items']
+    
+    if isinstance(current_items, list) and len(current_items) > 0:
         # データフレームに変換
-        df = pd.DataFrame(st.session_state.items)
+        df = pd.DataFrame(current_items)
        
         # 賞味期限までの日数を計算
         df['expiry_date_dt'] = pd.to_datetime(df['expiry_date'])
@@ -276,6 +293,7 @@ with tab2:
        
         # ソート
         df = df.sort_values('days_left')
+        df = df.reset_index(drop=True)
        
         # カテゴリでフィルター
         selected_category = st.selectbox(
@@ -284,12 +302,13 @@ with tab2:
         )
        
         if selected_category != "すべて":
-            df_display = df[df['category'] == selected_category]
+            df_display = df[df['category'] == selected_category].reset_index(drop=True)
         else:
             df_display = df
        
         # 食材カードを表示
-        for idx, row in df_display.iterrows():
+        for idx in range(len(df_display)):
+            row = df_display.iloc[idx]
             days_left = row['days_left']
            
             # 警告レベルの判定
@@ -329,12 +348,13 @@ with tab2:
                
                 col1, col2 = st.columns([1, 5])
                 with col1:
-                    if st.button(f"🗑️ 削除", key=f"del_{idx}"):
-                        # インデックスで直接削除
-                        item_index = df_display.index.get_loc(idx)
-                        st.session_state.items.pop(item_index)
+                    if st.button(f"🗑️ 削除", key=f"del_{idx}_{row['name']}"):
+                        # 元のリストから該当アイテムを削除
+                        item_to_remove = row.to_dict()
+                        updated_items = [item for item in current_items if item != item_to_remove]
+                        st.session_state['items'] = updated_items
                         # ユーザーデータを更新
-                        st.session_state.users[st.session_state.current_user] = st.session_state.items.copy()
+                        st.session_state['users'][st.session_state['current_user']] = list(updated_items)
                         st.rerun()
     else:
         st.info("📝 まだ食材が登録されていません。「食材を登録」タブから登録してください。")
@@ -342,9 +362,11 @@ with tab2:
 # タブ3: 警告
 with tab3:
     st.header("⚠️ 賞味期限の警告")
+    
+    current_items = st.session_state['items']
    
-    if st.session_state.items and len(st.session_state.items) > 0:
-        df = pd.DataFrame(st.session_state.items)
+    if isinstance(current_items, list) and len(current_items) > 0:
+        df = pd.DataFrame(current_items)
         df['expiry_date_dt'] = pd.to_datetime(df['expiry_date'])
         today = pd.Timestamp(datetime.now().date())
         df['days_left'] = (df['expiry_date_dt'] - today).dt.days
@@ -408,12 +430,14 @@ with st.sidebar:
     st.header("📊 統計情報")
    
     # 現在のユーザー情報
-    if st.session_state.current_user:
-        st.info(f"👤 {st.session_state.current_user}さん")
+    if st.session_state['current_user']:
+        st.info(f"👤 {st.session_state['current_user']}さん")
+    
+    current_items = st.session_state['items']
    
-    if st.session_state.items and len(st.session_state.items) > 0:
-        total = len(st.session_state.items)
-        df = pd.DataFrame(st.session_state.items)
+    if isinstance(current_items, list) and len(current_items) > 0:
+        total = len(current_items)
+        df = pd.DataFrame(current_items)
         df['expiry_date_dt'] = pd.to_datetime(df['expiry_date'])
         today = pd.Timestamp(datetime.now().date())
         df['days_left'] = (df['expiry_date_dt'] - today).dt.days
@@ -438,10 +462,10 @@ with st.sidebar:
     st.divider()
    
     # すべての利用者の概要
-    if st.session_state.users:
+    if len(st.session_state['users']) > 0:
         st.subheader("👥 全利用者")
-        for user_name, user_items in st.session_state.users.items():
-            item_count = len(user_items) if user_items else 0
+        for user_name, user_items in st.session_state['users'].items():
+            item_count = len(user_items) if isinstance(user_items, list) else 0
             if item_count > 0:
                 # 警告のある食材をカウント
                 df_temp = pd.DataFrame(user_items)
@@ -463,23 +487,23 @@ with st.sidebar:
     st.subheader("🗑️ データ管理")
    
     # 現在のユーザーのデータを削除
-    if st.session_state.current_user:
+    if st.session_state['current_user']:
         if st.button("このユーザーの食材を全削除"):
-            st.session_state.items = []
-            st.session_state.users[st.session_state.current_user] = []
+            st.session_state['items'] = []
+            st.session_state['users'][st.session_state['current_user']] = []
             st.rerun()
        
         if st.button("このユーザーを削除"):
-            del st.session_state.users[st.session_state.current_user]
-            st.session_state.current_user = None
-            st.session_state.items = []
-            st.session_state.items_user = None
+            del st.session_state['users'][st.session_state['current_user']]
+            st.session_state['current_user'] = None
+            st.session_state['items'] = []
+            st.session_state['items_user'] = None
             st.rerun()
    
     # すべてのデータのクリア
     if st.button("🗑️ すべてのデータを削除"):
-        st.session_state.users = {}
-        st.session_state.current_user = None
-        st.session_state.items = []
-        st.session_state.items_user = None
+        st.session_state['users'] = {}
+        st.session_state['current_user'] = None
+        st.session_state['items'] = []
+        st.session_state['items_user'] = None
         st.rerun()
