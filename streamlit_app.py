@@ -58,7 +58,7 @@ def get_product_name_from_barcode(barcode):
         st.error(f"API エラー: {str(e)}")
         return None
 
-# レシピ生成関数（修正版）
+# レシピ生成関数
 def generate_recipe_suggestions(selected_items, recipe_type, items_df):
     """選択された食材からレシピを生成"""
     recipes = []
@@ -158,6 +158,13 @@ def generate_recipe_suggestions(selected_items, recipe_type, items_df):
         })
     
     return recipes[:3]
+
+# 日付の検証
+def validate_dates(purchase_date, expiry_date):
+    """日付の妥当性をチェック"""
+    if expiry_date < purchase_date:
+        return False, "賞味期限は購入日より後の日付を選択してください"
+    return True, ""
  
 # カスタムCSS
 st.markdown("""
@@ -286,23 +293,28 @@ with tab1:
     st.markdown("---")
     if st.button("✅ 登録する", type="primary", key="register_button", use_container_width=True):
         if item_name:
-            new_item = {
-                'name': item_name,
-                'barcode': barcode if barcode else "未登録",
-                'purchase_date': purchase_date.strftime('%Y-%m-%d'),
-                'expiry_date': expiry_date.strftime('%Y-%m-%d'),
-                'category': category,
-                'quantity': quantity,
-                'registered_at': datetime.now().strftime('%Y-%m-%d %H:%M'),
-                'registered_by': st.session_state['current_user']
-            }
-            current_items = list(st.session_state['items'])
-            current_items.append(new_item)
-            st.session_state['items'] = current_items
-            st.session_state['users'][st.session_state['current_user']] = list(current_items)
-            st.success(f"✅ {item_name} を登録しました！")
-            st.balloons()
-            st.rerun()
+            # 日付の検証
+            is_valid, error_msg = validate_dates(purchase_date, expiry_date)
+            if not is_valid:
+                st.error(f"⚠️ {error_msg}")
+            else:
+                new_item = {
+                    'name': item_name,
+                    'barcode': barcode if barcode else "未登録",
+                    'purchase_date': purchase_date.strftime('%Y-%m-%d'),
+                    'expiry_date': expiry_date.strftime('%Y-%m-%d'),
+                    'category': category,
+                    'quantity': quantity,
+                    'registered_at': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                    'registered_by': st.session_state['current_user']
+                }
+                current_items = list(st.session_state['items'])
+                current_items.append(new_item)
+                st.session_state['items'] = current_items
+                st.session_state['users'][st.session_state['current_user']] = list(current_items)
+                st.success(f"✅ {item_name} を登録しました！")
+                st.balloons()
+                st.rerun()
         else:
             st.error("⚠️ 食材名を入力してください")
  
@@ -381,11 +393,12 @@ with tab2:
                     </div>
                 """, unsafe_allow_html=True)
                
-                if st.button(f"🗑️ 削除", key=f"del_{idx}_{row['name']}", use_container_width=True):
+                if st.button(f"🗑️ 削除", key=f"del_{idx}_{row['name']}_{row['purchase_date']}", use_container_width=True):
                     item_to_remove = row.to_dict()
-                    updated_items = [item for item in current_items if item != item_to_remove]
+                    updated_items = [item for item in current_items if not all(item.get(k) == v for k, v in item_to_remove.items())]
                     st.session_state['items'] = updated_items
                     st.session_state['users'][st.session_state['current_user']] = list(updated_items)
+                    st.success("削除しました！")
                     st.rerun()
     else:
         st.info("📝 まだ食材が登録されていません")
@@ -406,24 +419,24 @@ with tab3:
         today = pd.Timestamp(datetime.now().date())
         df['days_left'] = (df['expiry_date_dt'] - today).dt.days
        
-        expired = df[df['days_left'] < 0]
+        expired = df[df['days_left'] < 0].sort_values('days_left')
         today_expiry = df[df['days_left'] == 0]
-        warning = df[(df['days_left'] > 0) & (df['days_left'] <= 3)]
+        warning = df[(df['days_left'] > 0) & (df['days_left'] <= 3)].sort_values('days_left')
        
         if not expired.empty:
-            st.error("🚨 期限切れの食材があります！")
+            st.error(f"🚨 期限切れの食材が {len(expired)} 個あります！")
             for _, row in expired.iterrows():
-                st.markdown(f"**{row['name']}** - 期限切れ: {abs(row['days_left'])}日前")
+                st.markdown(f"**{row['name']}** ({row['category']}) - 期限切れ: {abs(row['days_left'])}日前")
        
         if not today_expiry.empty:
-            st.warning("⚠️ 今日が期限の食材があります！")
+            st.warning(f"⚠️ 今日が期限の食材が {len(today_expiry)} 個あります！")
             for _, row in today_expiry.iterrows():
-                st.markdown(f"**{row['name']}** - 今日が賞味期限")
+                st.markdown(f"**{row['name']}** ({row['category']}) - 今日が賞味期限")
        
         if not warning.empty:
-            st.warning("📢 もうすぐ期限が切れる食材があります")
+            st.warning(f"📢 もうすぐ期限が切れる食材が {len(warning)} 個あります")
             for _, row in warning.iterrows():
-                st.markdown(f"**{row['name']}** - あと{row['days_left']}日")
+                st.markdown(f"**{row['name']}** ({row['category']}) - あと{row['days_left']}日")
        
         if expired.empty and today_expiry.empty and warning.empty:
             st.success("✅ すべての食材の賞味期限に余裕があります！")
@@ -517,42 +530,3 @@ with st.sidebar:
     
     notification_days = st.slider("何日前に通知するか", min_value=1, max_value=7, value=st.session_state['notification_days'])
     st.session_state['notification_days'] = notification_days
-   
-    st.divider()
-   
-    st.header("📊 統計情報")
-   
-    if st.session_state['current_user']:
-        st.info(f"👤 {st.session_state['current_user']}さん")
-    
-    current_items = st.session_state['items']
-   
-    if isinstance(current_items, list) and len(current_items) > 0:
-        total = len(current_items)
-        df = pd.DataFrame(current_items)
-        
-        if 'registered_by' not in df.columns:
-            df['registered_by'] = '不明'
-            
-        df['expiry_date_dt'] = pd.to_datetime(df['expiry_date'])
-        today = pd.Timestamp(datetime.now().date())
-        df['days_left'] = (df['expiry_date_dt'] - today).dt.days
-       
-        expired_count = len(df[df['days_left'] < 0])
-        warning_count = len(df[(df['days_left'] >= 0) & (df['days_left'] <= 3)])
-        safe_count = len(df[df['days_left'] > 3])
-       
-        st.metric("登録食材数", f"{total}個")
-        st.metric("期限切れ", f"{expired_count}個")
-        st.metric("要注意(3日以内)", f"{warning_count}個")
-        st.metric("安全", f"{safe_count}個")
-    else:
-        st.info("データがありません")
-   
-    st.divider()
-   
-    st.subheader("🗑️ データ管理")
-   
-    if st.session_state['current_user']:
-        if st.button("このユーザーの食材を全削除", use_container_width=True):
-        
