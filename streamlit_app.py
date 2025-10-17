@@ -1,4 +1,815 @@
-import streamlit as st
+# 和食
+        "野菜炒め": {
+            "required": ["野菜"],  # 最低限必要な食材
+            "optional": ["肉", "豚肉", "鶏肉", "牛肉"],
+            "keywords": ["キャベツ", "ピーマン", "玉ねぎ", "にんじん", "もやし", "ネギ", "ニラ"],
+            "type": ["和食", "簡単レシピ"],
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["醤油 大さじ1", "酒 大さじ1", "塩こしょう 少々", "サラダ油 大さじ1"],
+            "steps": [
+                "野菜を食べやすい大きさに切る",
+                "フライパンに油を熱し、火が通りにくいものから炒める",
+                "全体に火が通ったら、醤油・酒・塩こしょうで味付けする",
+                "強火でサッと炒めて完成"
+            ],
+            "tips": "野菜は大きさを揃えて切ると、火の通りが均一になります。"
+        },
+        "具だくさん味噌汁": {
+            "required": ["野菜"],
+            "optional": ["豆腐", "わかめ", "油揚げ"],
+            "keywords": ["キャベツ", "大根", "にんじん", "じゃがいも", "玉ねぎ", "ネギ"],
+            "type": ["和食", "簡単レシピ"],
+            "time": "20分",
+            "servings": "3-4人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["水 800ml", "だしの素 小さじ2", "味噌 大さじ3"],
+            "steps": [
+                "野菜を一口大に切る",
+                "鍋に水とだしの素を入れて沸騰させる",
+                "火が通りにくい野菜から順に入れて煮る",
+                "全ての野菜が柔らかくなったら、味噌を溶き入れる",
+                "ひと煮立ちしたら完成"
+            ],
+            "tips": "味噌は沸騰させると香りが飛ぶので、火を止める直前に入れましょう。"
+        },
+        "肉じゃが": {
+            "required": ["じゃがいも", "肉"],
+            "optional": ["にんじん", "玉ねぎ"],
+            "keywords": ["牛肉", "豚肉"],
+            "type": ["和食"],
+            "time": "30分",
+            "servings": "3-4人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["醤油 大さじ3", "砂糖 大さじ2", "みりん 大さじ2", "だし汁 400ml"],
+            "steps": [
+                "じゃがいも・にんじん・玉ねぎを一口大に切る",
+                "鍋に油を熱し、肉を炒める",
+                "野菜を加えて軽く炒める",
+                "だし汁と調味料を加えて20分ほど煮込む",
+                "じゃがいもが柔らかくなったら完成"
+            ],
+            "tips": "じゃがいもは煮崩れしにくいメークインがおすすめです。"
+        },
+        "親子丼": {
+            "required": ["鶏肉", "卵"],
+            "optional": ["玉ねぎ", "ネギ"],
+            "keywords": [],
+            "type": ["和食", "簡単レシピ"],
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["ご飯 2膳", "醤油 大さじ2", "みりん 大さじ2", "砂糖 大さじ1", "だし汁 100ml"],
+            "steps": [
+                "玉ねぎをスライスし、鶏肉は一口大に切る",
+                "フライパンにだし汁と調味料を入れて煮立てる",
+                "鶏肉と玉ねぎを加えて煮る",
+                "溶き卵を回し入れ、半熟になったらご飯にのせる"
+            ],
+            "tips": "卵は2回に分けて入れると、ふわふわに仕上がります。"
+        },
+        "他人丼": {
+            "required": ["豚肉", "卵"],
+            "optional": ["玉ねぎ", "ネギ"],
+            "keywords": [],
+            "type": ["和食", "簡単レシピ"],
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["ご飯 2膳", "醤油 大さじ2", "みりん 大さじ2", "砂糖 大さじ1", "だし汁 100ml"],
+            "steps": [
+                "玉ねぎをスライスし、豚肉は食べやすく切る",
+                "フライパンにだし汁と調味料を入れて煮立てる",
+                "豚肉と玉ねぎを加えて煮る",
+                "溶き卵を回し入れ、半熟になったらご飯にのせる"
+            ],
+            "tips": "豚肉でも親子丼のような味わいが楽しめます。"
+        },
+        "豚の生姜焼き": {
+            "required": ["豚肉"],
+            "optional": ["玉ねぎ", "キャベツ"],
+            "keywords": [],
+            "type": ["和食", "簡単レシピ"],
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["醤油 大さじ2", "みりん 大さじ2", "生姜 1片", "サラダ油 大さじ1"],
+            "steps": [
+                "豚肉に塩こしょうをふる",
+                "生姜をすりおろし、調味料と混ぜる",
+                "フライパンで豚肉を焼く",
+                "タレを加えて絡める"
+            ],
+            "tips": "生姜は多めに入れると風味が増します。"
+        },
+        "鮭の照り焼き": {
+            "required": ["鮭"],
+            "optional": [],
+            "keywords": ["魚"],
+            "type": ["和食", "簡単レシピ"],
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["醤油 大さじ2", "みりん 大さじ2", "砂糖 大さじ1", "サラダ油 大さじ1"],
+            "steps": [
+                "鮭に塩をふって10分おく",
+                "フライパンで両面を焼く",
+                "調味料を加えて照りが出るまで煮詰める"
+            ],
+            "tips": "タレを煮詰めすぎると焦げやすいので注意。"
+        },
+        "ぶり大根": {
+            "required": ["ぶり", "大根"],
+            "optional": [],
+            "keywords": ["魚"],
+            "type": ["和食"],
+            "time": "40分",
+            "servings": "3-4人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["醤油 大さじ3", "みりん 大さじ3", "砂糖 大さじ2", "生姜 1片", "だし汁 400ml"],
+            "steps": [
+                "ぶりは熱湯をかけて臭みを取る",
+                "大根は厚めの半月切りにして下茹でする",
+                "鍋にだし汁と調味料、生姜を入れて煮立てる",
+                "ぶりと大根を加えて30分煮込む"
+            ],
+            "tips": "大根は米のとぎ汁で下茹ですると苦味が抜けます。"
+        },
+        "筑前煮": {
+            "required": ["鶏肉", "野菜"],
+            "optional": ["にんじん", "ごぼう", "れんこん", "こんにゃく"],
+            "keywords": [],
+            "type": ["和食"],
+            "time": "35分",
+            "servings": "4人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["醤油 大さじ3", "みりん 大さじ3", "砂糖 大さじ2", "だし汁 400ml", "ごま油 大さじ1"],
+            "steps": [
+                "材料を一口大に切る",
+                "鍋にごま油を熱し、鶏肉を炒める",
+                "野菜を加えて炒める",
+                "だし汁と調味料を加えて20分煮込む"
+            ],
+            "tips": "冷めても美味しいので、お弁当にもおすすめです。"
+        },
+        "卵焼き": {
+            "required": ["卵"],
+            "optional": ["ネギ", "チーズ"],
+            "keywords": [],
+            "type": ["和食", "簡単レシピ"],
+            "time": "10分",
+            "servings": "2人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["砂糖 大さじ1", "醤油 小さじ1", "だし汁 大さじ2", "サラダ油 適量"],
+            "steps": [
+                "卵を溶きほぐし、調味料を混ぜる",
+                "卵焼き器に油を薄く引き、卵液を1/3流し込む",
+                "半熟になったら手前に巻く",
+                "同じ作業を繰り返して厚みを出す"
+            ],
+            "tips": "火加減は中火で、焦げないように注意しましょう。"
+        },
+        # 中華・アジア
+        "簡単チャーハン": {
+            "required": ["卵"],
+            "optional": ["肉", "ハム", "ソーセージ", "ネギ", "野菜"],
+            "keywords": ["玉ねぎ", "にんじん", "ピーマン"],
+            "type": ["中華", "簡単レシピ"],
+            "time": "10分",
+            "servings": "2人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": ["ご飯 2膳分"] + make_ingredients(selected_items) + ["醤油 大さじ1", "塩こしょう 少々", "ごま油 大さじ1", "中華スープの素 小さじ1"],
+            "steps": [
+                "材料を細かく刻む",
+                "フライパンを強火で熱し、ごま油を入れる",
+                "溶き卵を入れてすぐにご飯を加え、パラパラになるまで炒める",
+                "野菜や肉を加えてさらに炒める",
+                "醤油、中華スープの素、塩こしょうで味付けして完成"
+            ],
+            "tips": "ご飯は冷ご飯を使うとパラパラに仕上がりやすいです。"
+        },
+        "麻婆豆腐": {
+            "required": ["豆腐", "ひき肉"],
+            "optional": ["ネギ"],
+            "keywords": ["肉"],
+            "type": ["中華"],
+            "time": "20分",
+            "servings": "2-3人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["豆板醤 大さじ1", "醤油 大さじ1", "鶏ガラスープ 200ml", "片栗粉 大さじ1", "ごま油 少々", "にんにく 1片"],
+            "steps": [
+                "豆腐を2cm角に切り、下茹でする",
+                "フライパンでにんにくを炒め、肉を炒める",
+                "豆板醤を加えて香りを出す",
+                "スープと調味料を加えて煮立てる",
+                "豆腐を加えて煮込み、水溶き片栗粉でとろみをつける",
+                "ごま油を回しかけて完成"
+            ],
+            "tips": "豆板醤の量で辛さを調整できます。"
+        },
+        "八宝菜": {
+            "required": ["野菜"],
+            "optional": ["肉", "豚肉", "海鮮"],
+            "keywords": ["キャベツ", "にんじん", "玉ねぎ", "ピーマン", "きくらげ"],
+            "type": ["中華"],
+            "time": "20分",
+            "servings": "3-4人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["オイスターソース 大さじ1", "醤油 大さじ1", "鶏ガラスープ 150ml", "片栗粉 大さじ1", "ごま油 大さじ1"],
+            "steps": [
+                "材料を食べやすい大きさに切る",
+                "フライパンで肉を炒め、野菜を加える",
+                "スープと調味料を加えて炒め煮する",
+                "水溶き片栗粉でとろみをつけて完成"
+            ],
+            "tips": "具材はお好みで変更できます。海鮮を入れても美味しいです。"
+        },
+        "回鍋肉": {
+            "required": ["豚肉", "キャベツ"],
+            "optional": ["ピーマン", "ネギ"],
+            "keywords": [],
+            "type": ["中華"],
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["甜麺醤 大さじ2", "醤油 大さじ1", "酒 大さじ1", "豆板醤 小さじ1", "ごま油 大さじ1"],
+            "steps": [
+                "豚肉とキャベツを食べやすい大きさに切る",
+                "フライパンで豚肉を炒める",
+                "キャベツと野菜を加えて炒める",
+                "調味料を加えて強火で炒め合わせる"
+            ],
+            "tips": "強火でサッと炒めるのがポイントです。"
+        },
+        "青椒肉絲": {
+            "required": ["ピーマン", "肉"],
+            "optional": ["たけのこ"],
+            "keywords": ["豚肉", "牛肉"],
+            "type": ["中華"],
+            "time": "20分",
+            "servings": "2人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["オイスターソース 大さじ1", "醤油 大さじ1", "酒 大さじ1", "片栗粉 小さじ1", "ごま油 大さじ1"],
+            "steps": [
+                "ピーマンと肉を細切りにする",
+                "肉に下味をつける",
+                "フライパンで肉を炒め、一度取り出す",
+                "ピーマンを炒め、肉を戻して調味料で味付け"
+            ],
+            "tips": "ピーマンはシャキシャキ感を残すように炒めましょう。"
+        },
+        "エビチリ": {
+            "required": ["エビ"],
+            "optional": ["ネギ"],
+            "keywords": [],
+            "type": ["中華"],
+            "time": "20分",
+            "servings": "2人分",
+            "difficulty": "⭐⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["ケチャップ 大さじ3", "豆板醤 小さじ1", "鶏ガラスープ 100ml", "片栗粉 大さじ1", "にんにく 1片"],
+            "steps": [
+                "エビの背わたを取り、片栗粉をまぶす",
+                "フライパンでエビを炒めて取り出す",
+                "にんにくを炒め、調味料を加える",
+                "エビを戻してソースを絡める"
+            ],
+            "tips": "豆板醤の量で辛さ調整できます。"
+        },
+        # 洋食
+        "オムレツ": {
+            "required": ["卵"],
+            "optional": ["チーズ", "ハム", "野菜"],
+            "keywords": ["玉ねぎ", "ピーマン", "トマト"],
+            "type": ["洋食", "簡単レシピ"],
+            "time": "10分",
+            "servings": "1-2人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["牛乳 大さじ2", "バター 10g", "塩こしょう 少々"],
+            "steps": [
+                "卵を溶きほぐし、牛乳、塩こしょうを混ぜる",
+                "具材は細かく刻んでおく",
+                "フライパンにバターを溶かし、卵液を流し込む",
+                "半熟になったら具材をのせて半分に折る"
+            ],
+            "tips": "火は中火より少し弱めで、ゆっくり焼くとふわふわに仕上がります。"
+        },
+        "トマトパスタ": {
+            "required": ["トマト"],
+            "optional": ["ベーコン", "ツナ", "野菜", "玉ねぎ"],
+            "keywords": [],
+            "type": ["洋食"],
+            "time": "20分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": ["パスタ 200g"] + make_ingredients(selected_items) + ["にんにく 1片", "オリーブオイル 大さじ2", "塩こしょう 少々", "バジル お好みで"],
+            "steps": [
+                "パスタを茹で始める",
+                "にんにくをみじん切りにし、オリーブオイルで炒める",
+                "トマトと具材を加えて煮込む",
+                "茹でたパスタを加えて和え、塩こしょうで味を整える"
+            ],
+            "tips": "パスタの茹で汁を少し加えると、ソースがよく絡みます。"
+        },
+        "カルボナーラ": {
+            "required": ["卵", "ベーコン"],
+            "optional": ["チーズ"],
+            "keywords": ["ハム"],
+            "type": ["洋食"],
+            "time": "20分",
+            "servings": "2人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": ["パスタ 200g"] + make_ingredients(selected_items) + ["生クリーム 100ml", "粉チーズ 大さじ3", "塩こしょう 少々", "オリーブオイル 大さじ1"],
+            "steps": [
+                "パスタを茹でる",
+                "ベーコンを炒める",
+                "ボウルに卵、生クリーム、チーズを混ぜる",
+                "茹でたパスタをベーコンと混ぜ、火を止めて卵液を加える"
+            ],
+            "tips": "卵液は火を止めてから加えないと固まってしまいます。"
+        },
+        "クリームシチュー": {
+            "required": ["野菜"],
+            "optional": ["じゃがいも", "にんじん", "玉ねぎ", "肉", "鶏肉", "ブロッコリー"],
+            "keywords": [],
+            "type": ["洋食"],
+            "time": "30分",
+            "servings": "3-4人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["牛乳 400ml", "シチューのルー 1/2箱", "バター 20g", "水 400ml"],
+            "steps": [
+                "材料を一口大に切る",
+                "鍋にバターを溶かし、肉と野菜を炒める",
+                "水を加えて20分ほど煮込む",
+                "ルーと牛乳を加えてとろみがつくまで煮る"
+            ],
+            "tips": "ルーを入れる前に一度火を止めると、ダマになりにくいです。"
+        },
+        "ハンバーグ": {
+            "required": ["ひき肉", "卵"],
+            "optional": ["玉ねぎ"],
+            "keywords": ["肉"],
+            "type": ["洋食"],
+            "time": "30分",
+            "servings": "3-4個分",
+            "difficulty": "⭐⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["パン粉 大さじ3", "牛乳 大さじ2", "ナツメグ 少々", "塩こしょう 少々", "ケチャップ 大さじ2", "ウスターソース 大さじ2"],
+            "steps": [
+                "玉ねぎをみじん切りにして炒め、冷ます",
+                "ひき肉に卵、パン粉、牛乳、玉ねぎ、調味料を混ぜる",
+                "よく練って小判型に成形する",
+                "フライパンで両面を焼き、蓋をして中まで火を通す",
+                "ソースで味付けして完成"
+            ],
+            "tips": "タネを冷蔵庫で30分寝かせると、成形しやすくなります。"
+        },
+        "グラタン": {
+            "required": ["野菜"],
+            "optional": ["マカロニ", "鶏肉", "エビ", "チーズ"],
+            "keywords": ["玉ねぎ", "ほうれん草"],
+            "type": ["洋食"],
+            "time": "35分",
+            "servings": "3-4人分",
+            "difficulty": "⭐⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["バター 30g", "小麦粉 大さじ3", "牛乳 400ml", "コンソメ 1個", "チーズ 適量"],
+            "steps": [
+                "具材を炒める",
+                "バターと小麦粉でホワイトソースを作る",
+                "牛乳を加えてとろみをつける",
+                "耐熱皿に入れ、チーズをのせて焼く"
+            ],
+            "tips": "オーブンで焼き色がつくまで焼きます。"
+        },
+        "ポークソテー": {
+            "required": ["豚肉"],
+            "optional": ["野菜"],
+            "keywords": [],
+            "type": ["洋食", "簡単レシピ"],
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["塩こしょう 少々", "小麦粉 適量", "バター 10g", "レモン汁 少々"],
+            "steps": [
+                "豚肉に塩こしょうをして小麦粉をまぶす",
+                "フライパンで両面を焼く",
+                "バターとレモン汁で味付け"
+            ],
+            "tips": "肉の筋を切っておくと縮みにくいです。"
+        },
+        "ビーフストロガノフ": {
+            "required": ["牛肉", "玉ねぎ"],
+            "optional": ["マッシュルーム"],
+            "keywords": [],
+            "type": ["洋食"],
+            "time": "25分",
+            "servings": "2-3人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["生クリーム 100ml", "デミグラスソース 1缶", "バター 20g", "塩こしょう 少々"],
+            "steps": [
+                "牛肉と玉ねぎを切る",
+                "バターで牛肉を焼き、取り出す",
+                "玉ねぎを炒め、デミグラスソースを加える",
+                "牛肉を戻し、生クリームを加えて煮込む"
+            ],
+            "tips": "ご飯やパンと相性抜群です。"
+        },
+        # その他・スープ
+        "野菜スープ": {
+            "required": ["野菜"],
+            "optional": ["キャベツ", "にんじん", "玉ねぎ", "じゃがいも", "トマト", "ベーコン"],
+            "keywords": [],
+            "type": ["簡単レシピ"],
+            "time": "20分",
+            "servings": "3-4人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["水 800ml", "コンソメ 2個", "塩こしょう 少々", "オリーブオイル 大さじ1"],
+            "steps": [
+                "野菜を一口大に切る",
+                "鍋にオリーブオイルを熱し、野菜を軽く炒める",
+                "水とコンソメを加えて15分ほど煮込む",
+                "塩こしょうで味を整えて完成"
+            ],
+            "tips": "余った野菜を何でも入れられる、冷蔵庫整理にぴったりのレシピです。"
+        },
+        "中華スープ": {
+            "required": ["野菜"],
+            "optional": ["卵", "豆腐", "わかめ", "ネギ"],
+            "keywords": [],
+            "type": ["中華", "簡単レシピ"],
+            "time": "15分",
+            "servings": "3-4人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["水 800ml", "鶏ガラスープの素 大さじ2", "醤油 小さじ1", "ごま油 少々"],
+            "steps": [
+                "野菜を食べやすい大きさに切る",
+                "鍋に水と鶏ガラスープの素を入れて沸騰させる",
+                "野菜を加えて煮る",
+                "醤油とごま油で味を整える"
+            ],
+            "tips": "溶き卵を加えると卵スープになります。"
+        },
+        "ポトフ": {
+            "required": ["野菜"],
+            "optional": ["じゃがいも", "にんじん", "キャベツ", "玉ねぎ", "ソーセージ"],
+            "keywords": [],
+            "type": ["洋食"],
+            "time": "30分",
+            "servings": "3-4人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["水 1000ml", "コンソメ 3個", "ローリエ 1枚", "塩こしょう 少々"],
+            "steps": [
+                "野菜を大きめに切る",
+                "鍋に水とコンソメを入れて沸騰させる",
+                "野菜とソーセージを加えて25分煮込む",
+                "塩こしょうで味を整える"
+            ],
+            "tips": "じっくり煮込むと野菜の甘みが出ます。"
+        },
+        "サラダ": {
+            "required": ["野菜"],
+            "optional": ["レタス", "キャベツ", "トマト", "きゅうり", "にんじん", "卵"],
+            "keywords": [],
+            "type": ["簡単レシピ"],
+            "time": "5分",
+            "servings": "2-3人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["ドレッシング お好みで", "塩 少々"],
+            "steps": [
+                "野菜をよく洗う",
+                "食べやすい大きさに切る",
+                "お皿に盛り付け、ドレッシングをかける"
+            ],
+            "tips": "野菜は冷水に浸すとシャキッとします。"
+        },
+        "ポテトサラダ": {
+            "required": ["じゃがいも"],
+            "optional": ["きゅうり", "にんじん", "ハム", "卵"],
+            "keywords": [],
+            "type": ["簡単レシピ"],
+            "time": "20分",
+            "servings": "3-4人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["マヨネーズ 大さじ3", "塩こしょう 少々", "酢 小さじ1"],
+            "steps": [
+                "じゃがいもを茹でて潰す",
+                "他の具材を細かく切る",
+                "すべてを混ぜ、マヨネーズと調味料で味付け"
+            ],
+            "tips": "じゃがいもは熱いうちに潰すと滑らかになります。"
+        },
+        "マカロニサラダ": {
+            "required": ["マカロニ"],
+            "optional": ["きゅうり", "にんじん", "ハム", "卵"],
+            "keywords": [],
+            "type": ["洋食", "簡単レシピ"],
+            "time": "20分",
+            "servings": "3-4人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["マヨネーズ 大さじ4", "塩こしょう 少々", "酢 小さじ1"],
+            "steps": [
+                "マカロニを茹でる",
+                "具材を細かく切る",
+                "マカロニと具材を混ぜ、マヨネーズで味付け"
+            ],
+            "tips": "マカロニは少し固めに茹でるとサラダに向いています。"
+        },
+        "豚汁": {
+            "required": ["豚肉", "野菜"],
+            "optional": ["大根", "にんじん", "ごぼう", "こんにゃく", "豆腐"],
+            "keywords": [],
+            "type": ["和食"],
+            "time": "25分",
+            "servings": "4人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["だし汁 800ml", "味噌 大さじ3", "ごま油 大さじ1"],
+            "steps": [
+                "野菜を一口大に切る",
+                "鍋にごま油を熱し、豚肉を炒める",
+                "野菜とだし汁を加えて煮る",
+                "味噌を溶き入れる"
+            ],
+            "tips": "具だくさんで栄養満点の定番料理です。"
+        },
+        "けんちん汁": {
+            "required": ["豆腐", "野菜"],
+            "optional": ["大根", "にんじん", "ごぼう", "こんにゃく"],
+            "keywords": [],
+            "type": ["和食"],
+            "time": "25分",
+            "servings": "4人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["だし汁 800ml", "醤油 大さじ2", "みりん 大さじ1", "ごま油 大さじ1"],
+            "steps": [
+                "野菜を切る",
+                "鍋にごま油を熱し、野菜を炒める",
+                "だし汁を加えて煮る",
+                "豆腐を崩して加え、調味料で味付け"
+            ],
+            "tips": "豆腐は手で崩すと味が染み込みやすくなります。"
+        },
+        "卵とじ": {
+            "required": ["卵"],
+            "optional": ["野菜", "肉", "豆腐"],
+            "keywords": ["玉ねぎ", "ネギ"],
+            "type": ["和食", "簡単レシピ"],
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["だし汁 200ml", "醤油 大さじ2", "みりん 大さじ2", "砂糖 大さじ1"],
+            "steps": [
+                "具材を食べやすく切る",
+                "だし汁と調味料を煮立てる",
+                "具材を加えて煮る",
+                "溶き卵を回し入れて半熟で火を止める"
+            ],
+            "tips": "ご飯にのせて丼ものにしても美味しいです。"
+        },
+        "煮物": {
+            "required": ["野菜"],
+            "optional": ["大根", "にんじん", "こんにゃく", "鶏肉"],
+            "keywords": [],
+            "type": ["和食"],
+            "time": "30分",
+            "servings": "3-4人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["だし汁 400ml", "醤油 大さじ3", "みりん 大さじ3", "砂糖 大さじ2"],
+            "steps": [
+                "材料を一口大に切る",
+                "鍋にだし汁と調味料を入れて煮立てる",
+                "材料を加えて20分煮込む",
+                "味が染みたら完成"
+            ],
+            "tips": "冷めるときに味が染み込むので、少し置いても美味しいです。"
+        },
+        "天ぷら": {
+            "required": ["野菜"],
+            "optional": ["エビ", "かぼちゃ", "ナス", "ピーマン", "さつまいも"],
+            "keywords": [],
+            "type": ["和食"],
+            "time": "25分",
+            "servings": "2-3人分",
+            "difficulty": "⭐⭐⭐ 難しい",
+            "ingredients": make_ingredients(selected_items) + ["天ぷら粉 100g", "冷水 150ml", "揚げ油 適量"],
+            "steps": [
+                "材料を食べやすい大きさに切る",
+                "天ぷら粉と冷水を混ぜる（混ぜすぎない）",
+                "材料に衣をつけて170度の油で揚げる",
+                "カラッと揚がったら完成"
+            ],
+            "tips": "衣は混ぜすぎないことと、冷水を使うことがサクサクの秘訣です。"
+        },
+        "唐揚げ": {
+            "required": ["鶏肉"],
+            "optional": [],
+            "keywords": [],
+            "type": ["簡単レシピ"],
+            "time": "30分",
+            "servings": "2-3人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["醤油 大さじ2", "酒 大さじ1", "にんにく 1片", "生姜 1片", "片栗粉 適量", "揚げ油 適量"],
+            "steps": [
+                "鶏肉を一口大に切る",
+                "醤油、酒、にんにく、生姜で下味をつけて15分置く",
+                "片栗粉をまぶす",
+                "170度の油で揚げる"
+            ],
+            "tips": "二度揚げするとカリッと仕上がります。"
+        },
+        "フライ": {
+            "required": ["肉"],
+            "optional": ["豚肉", "鶏肉", "魚"],
+            "keywords": [],
+            "type": ["洋食"],
+            "time": "25分",
+            "servings": "2人分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["小麦粉 適量", "卵 1個", "パン粉 適量", "揚げ油 適量"],
+            "steps": [
+                "材料に塩こしょうをする",
+                "小麦粉、溶き卵、パン粉の順につける",
+                "170度の油で揚げる",
+                "きつね色になったら完成"
+            ],
+            "tips": "パン粉は細かいものを使うと仕上がりが綺麗です。"
+        },
+        "焼きそば": {
+            "required": ["麺"],
+            "optional": ["野菜", "肉", "キャベツ", "もやし", "豚肉"],
+            "keywords": [],
+            "type": ["簡単レシピ"],
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": ["焼きそば麺 2玉"] + make_ingredients(selected_items) + ["焼きそばソース 適量", "サラダ油 大さじ1"],
+            "steps": [
+                "材料を食べやすく切る",
+                "フライパンで肉と野菜を炒める",
+                "麺を加えて炒める",
+                "ソースで味付けして完成"
+            ],
+            "tips": "麺を入れる前に少し水を加えるとほぐれやすいです。"
+        },
+        "お好み焼き": {
+            "required": ["キャベツ", "卵"],
+            "optional": ["豚肉", "エビ", "イカ"],
+            "keywords": [],
+            "type": ["簡単レシピ"],
+            "time": "20分",
+            "servings": "2枚分",
+            "difficulty": "⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["お好み焼き粉 100g", "水 100ml", "お好み焼きソース 適量", "マヨネーズ 適量", "青のり 適量"],
+            "steps": [
+                "キャベツを千切りにする",
+                "粉と水、卵を混ぜ、キャベツと具材を加える",
+                "フライパンで両面を焼く",
+                "ソースとマヨネーズをかける"
+            ],
+            "tips": "生地は混ぜすぎないのがふんわり仕上げるコツです。"
+        },
+        "チヂミ": {
+            "required": ["野菜"],
+            "optional": ["ニラ", "玉ねぎ", "にんじん", "エビ", "イカ"],
+            "keywords": [],
+            "type": ["簡単レシピ"],
+            "time": "20分",
+            "servings": "2-3枚分",
+            "difficulty": "⭐ 簡単",
+            "ingredients": make_ingredients(selected_items) + ["小麦粉 100g", "片栗粉 大さじ2", "水 120ml", "卵 1個", "ごま油 大さじ2"],
+            "steps": [
+                "野菜を細かく切る",
+                "粉類と水、卵を混ぜる",
+                "野菜を加えて混ぜる",
+                "フライパンで両面をカリッと焼く"
+            ],
+            "tips": "ごま油で焼くと香ばしく仕上がります。"
+        },
+        "餃子": {
+            "required": ["ひき肉", "キャベツ"],
+            "optional": ["ニラ", "ネギ"],
+            "keywords": [],
+            "type": ["中華"],
+            "time": "30分",
+            "servings": "30個分",
+            "difficulty": "⭐⭐⭐ 普通",
+            "ingredients": make_ingredients(selected_items) + ["餃子の皮 30枚", "にんにく 1片", "生姜 1片", "醤油 大さじ1", "ごま油 大さじ1"],
+            "steps": [
+                "キャベツをみじん切りにして塩もみする",
+                "水気を絞ってひき肉と調味料を混ぜる",
+                "皮で包む",
+                "フライパンで焼く"
+            ],
+            "tips": "皮の縁に水をつけるとしっかり閉じられます。"
+        },
+        "春巻き": {
+            "required": ["野菜"],
+            "optional": ["豚肉", "たけのこ", "春雨"],
+            "keywords": [],
+            "type": ["中華"],
+            "time": "30分",
+            "servings": "10本分",
+            "difficulty": "⭐⭐⭐ 普通",
+            "ingredients": ["春巻きの皮 10枚"] + make_ingredients(selected_items) + ["オイスターソース 大さじ1", "醤油 大さじ1", "揚げ油 適量"],
+            "steps": [
+                "具材を細切りにして炒める",
+                "調味料で味付けし、冷ます",
+                "皮で包む",
+                "170度の油で揚げる"
+            ],
+            "tips": "具材はしっかり冷ましてから包むと皮が破れにくいです。"
+        }
+    }
+    
+    # レシピマッチングとスコアリング（改善版）
+    scored_recipes = []
+    for recipe_name, recipe_data in recipe_db.items():
+        # 必須食材チェック
+        required = recipe_data.get("required", [])
+        if not has_ingredients(required):
+            continue  # 必須食材がない場合はスキップ
+        
+        # マッチスコア計算
+        match_score = 0
+        
+        # 選択された食材がレシピに含まれているかチェック
+        all_recipe_keywords = (recipe_data.get("keywords", []) + 
+                              recipe_data.get("required", []) + 
+                              recipe_data.get("optional", []))
+        
+        for item in selected_items_lower:
+            for keyword in all_recipe_keywords:
+                keyword_lower = keyword.lower()
+                if keyword_lower in item or item in keyword_lower:
+                    match_score += 1
+                    break
+        
+        # レシピタイプでのフィルタリング
+        type_match = False
+        if recipe_type == "おまかせ":
+            type_match = True
+        elif recipe_type in recipe_data["type"]:
+            type_match = True
+        
+        if match_score > 0 and type_match:
+            scored_recipes.append({
+                "name": recipe_name,
+                "score": match_score,
+                "data": recipe_data
+            })
+    
+    # スコアでソートして上位を取得
+    scored_recipes.sort(key=lambda x: x["score"], reverse=True)
+    
+    # レシピを構築
+    for scored in scored_recipes[:5]:  # 上位5つまで
+        recipe_data = scored["data"]
+        
+        # 実際に使用する食材を抽出
+        used_items = []
+        all_keywords = (recipe_data.get("keywords", []) + 
+                       recipe_data.get("required", []) + 
+                       recipe_data.get("optional", []))
+        
+        for item in selected_items:
+            item_lower = item.lower()
+            for keyword in all_keywords:
+                keyword_lower = keyword.lower()
+                if keyword_lower in item_lower or item_lower in keyword_lower:
+                    used_items.append(item)
+                    break
+        
+        recipe = {
+            "title": scored["name"],
+            "time": recipe_data["time"],
+            "servings": recipe_data["servings"],
+            "difficulty": recipe_data["difficulty"],
+            "ingredients_used": used_items if used_items else selected_items[:3],  # 使用食材
+            "ingredients": recipe_data["ingredients"],
+            "steps": recipe_data["steps"],
+            "tips": recipe_data["tips"],
+            "match_count": scored["score"]
+        }
+        recipes.append(recipe)
+    
+    # デフォルトレシピ（マッチするものがない場合）
+    if not recipes:
+        recipes.append({
+            "title": f"{items_str}の炒め物",
+            "time": "15分",
+            "servings": "2人分",
+            "difficulty": "⭐ 簡単",
+            "ingredients_used": selected_items,
+            "ingredients": make_ingredients(selected_items) + ["醤油 大さじ1", "みりん 大さじ1", "サラダ油 大さじ1"],
+            "steps": [
+                "材料を食べやすい大きさに切る",
+                "フライパンに油を熱し、火が通りにくいものから順に炒める",
+                "醤油とみりんで味付けする",
+                "全体に味が馴染んだら完成"
+            ],
+            "tips": "余った食材を有効活用できる万能レシピです！",
+            "match_count": 0
+        })
+    
+    return recipes[:3]import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 import json
@@ -63,6 +874,23 @@ def generate_recipe_suggestions(selected_items, recipe_type, items_df):
     """選択された食材からレシピを生成"""
     recipes = []
     items_str = "、".join(selected_items)
+    
+    # 食材を小文字に変換して検索しやすくする
+    selected_items_lower = [item.lower() for item in selected_items]
+    
+    # 食材の包含チェック関数
+    def has_ingredients(required_items):
+        """必要な食材がすべて選択されているかチェック"""
+        for req in required_items:
+            req_lower = req.lower()
+            found = False
+            for selected in selected_items_lower:
+                if req_lower in selected or selected in req_lower:
+                    found = True
+                    break
+            if not found:
+                return False
+        return True
     
     # 食材リストを生成するヘルパー関数
     def make_ingredients(items):
